@@ -1,5 +1,10 @@
 #!/bin/bash
 
+
+# file: writer.sh
+# This script creates a file at the specified location with the specified text
+
+#Input arguments
 writefile=$1
 writestr=$2
 
@@ -10,6 +15,7 @@ then
 fi
 
 directory=` dirname ${writefile}`
+
 if [ ! -d "$directory" ]
 then
 	echo "directory does not exist."
@@ -20,6 +26,6 @@ if touch ${writefile}
 then
 	echo ${writestr} > ${writefile}
 else
-	echo "file not created"
+	echo "file could not be created"
 	exit 1
 fi
