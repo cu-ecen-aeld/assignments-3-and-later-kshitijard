@@ -1,0 +1,5 @@
+kshitija@kshitija-VirtualBox:~/Documents/AESD_Summer2023/A2/assignment-1-kshitijard/finder-app$ file writer
+
+
+writer: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=2c4fc984b07490ead730015a31c289e617dcd8d6, for GNU/Linux 3.2.0, not stripped
+
