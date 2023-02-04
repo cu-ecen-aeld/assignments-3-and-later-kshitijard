@@ -2,11 +2,7 @@
 # Tester script for assignment 1 and assignment 2
 # Author: Siddhant Jajoo
 
-# clean up previous artifacts
-make clean
 
-# compile the writer application using native compilation
-make
 
 set -e
 set -u
