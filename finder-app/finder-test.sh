@@ -1,3 +1,7 @@
+#!/bin/sh
+# Tester script for assignment 1 and assignment 2
+# Author: Siddhant Jajoo
+
 set -e
 set -u
 
