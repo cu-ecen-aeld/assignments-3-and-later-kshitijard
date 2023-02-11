@@ -1,13 +1,7 @@
-CC=$(CROSS_COMPILE)gcc
+CROSS_COMPILE = 
+CC = gcc
+all: writer.c
+	$(CROSS_COMPILE)$(CC) writer.c -Wall -Werror -o writer
 
-default: writer
-	
-all: writer.o
-	$(CC) -g -Wall writer.o -o writer
-	
-writer.o: writer.c
-	$(CC) -g -Wall -c -o writer.o writer.c
-	
 clean:
 	rm -f *.o writer
-
