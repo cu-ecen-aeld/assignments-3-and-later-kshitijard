@@ -1,14 +1,30 @@
-CC=$(CROSS_COMPILE)gcc
-CFLAGS=-Werror -Wall -g
+CC = $(CROSS_COMPILE)gcc
 
-all: aesdsocket
-default: aesdsocket
+#Flags
+CFLAGS = -Wall -Werror -g
 
-aesdsocket: aesdsocket.o
-	$(CC) -o aesdsocket aesdsocket.o	
+LDFLAG = -pthread -lrt 
 
-appl=aesdsocket
+#Source
+SRCS = aesdsocket.c
 
-.PHONY : clean
-clean :
-	rm -f $(appl) *.o
+#Object
+OBJS = $(SRCS:.c=.o)
+
+# Target
+TARGET = aesdsocket
+
+all: $(TARGET)
+default: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) $(LDFLAG) $^ -o $@
+
+
+.PHONY: clean
+
+clean:
+	$(RM) $(TARGET) *.o
+
+#valgrind --leak-check=yes -s --track-origins=yes ./aesdsocket
+#valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose ./aesdsocket
