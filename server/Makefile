@@ -1,26 +1,21 @@
-CC = $(CROSS_COMPILE)gcc
+PROGRAM_NAME = aesdsocket
+SRC_FILES = aesdsocket.c
 
-CFLAGS = -Wall -Werror -g
-LDFLAG = -pthread -lrt 
+# If variables aren't define, define them
+ifeq ($(CC),)
+	CC = gcc
+endif
 
-SRCS = aesdsocket.c
+ifeq ($(CFLAGS),)
+	CFLAGS = -g -Werror -Wall
+endif
 
-#Object
-OBJS = $(SRCS:.c=.o)
+ifeq ($(LDFLAGS),)
+	LDFLAGS = -pthread -lrt
+endif
 
-# Target
-TARGET = aesdsocket
-
-all: $(TARGET)
-default: $(TARGET)
-
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) $(LDFLAG) $^ -o $@
-
-.PHONY: clean
+all:
+	$(CROSS_COMPILE)$(CC) $(CFLAGS) -I. ${SRC_FILES} -o $(PROGRAM_NAME) $(LDFLAGS)
 
 clean:
-	$(RM) $(TARGET) *.o
-
-#valgrind --leak-check=yes -s --track-origins=yes ./aesdsocket
-#valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose ./aesdsocket
+	rm -f $(PROGRAM_NAME) *.o
