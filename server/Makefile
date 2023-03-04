@@ -1,11 +1,8 @@
 CC = $(CROSS_COMPILE)gcc
 
-#Flags
 CFLAGS = -Wall -Werror -g
-
 LDFLAG = -pthread -lrt 
 
-#Source
 SRCS = aesdsocket.c
 
 #Object
@@ -19,7 +16,6 @@ default: $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAG) $^ -o $@
-
 
 .PHONY: clean
 
