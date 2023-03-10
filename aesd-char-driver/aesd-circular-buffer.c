@@ -12,6 +12,7 @@
 #include <linux/string.h>
 #else
 #include <string.h>
+//#include <stdio.h>
 #endif
 
 #include "aesd-circular-buffer.h"
@@ -22,17 +23,46 @@
  *      character index if all buffer strings were concatenated end to end
  * @param entry_offset_byte_rtn is a pointer specifying a location to store the byte of the returned aesd_buffer_entry
  *      buffptr member corresponding to char_offset.  This value is only set when a matching char_offset is found
- *      in aesd_buffer.
+ *      in aesd_buffer. 
  * @return the struct aesd_buffer_entry structure representing the position described by char_offset, or
  * NULL if this position is not available in the buffer (not enough data is written).
  */
 struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct aesd_circular_buffer *buffer,
-            size_t char_offset, size_t *entry_offset_byte_rtn )
+			size_t char_offset, size_t *entry_offset_byte_rtn )
 {
-    /**
-    * TODO: implement per description
-    */
-    return NULL;
+	/**
+	* TODO: implement per description
+	*/
+	uint8_t index;
+
+	struct aesd_buffer_entry *entry;
+	char_offset++;
+	index = buffer->out_offs;
+	for (int count = 0; count < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED; count++)
+	{
+		index = (buffer->out_offs + count) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
+
+		entry = &((buffer)->entry[index]);
+		if(entry == NULL)
+		{
+			return NULL;
+		}
+		else
+		{
+			if(char_offset <= entry->size)
+			{
+				// offset is present in this string
+				*entry_offset_byte_rtn = char_offset -1;
+				return entry;
+			}
+			else
+			{
+				char_offset -= entry->size;
+			}
+		}
+	}
+
+	return NULL;
 }
 
 /**
@@ -45,8 +75,32 @@ struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct
 void aesd_circular_buffer_add_entry(struct aesd_circular_buffer *buffer, const struct aesd_buffer_entry *add_entry)
 {
     /**
-    * TODO: implement per description
+    * TODO: implement per description 
     */
+    
+	// Check if buffer is full
+
+
+	// add entry to correct location
+	buffer->entry[buffer->in_offs] = *add_entry;
+
+   	// Modify read and write pointers accordingly
+	buffer->in_offs = (buffer->in_offs + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
+	if(buffer->full ==  true)
+	{
+		buffer->out_offs = (buffer->out_offs + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
+	}
+
+   	// Update full status if buffer is full
+	if(buffer->in_offs == buffer->out_offs)
+	{
+		buffer->full = true;
+	}
+	else
+	{
+		buffer->full = false;
+	}
+
 }
 
 /**
