@@ -12,11 +12,11 @@
 #include <linux/string.h>
 #else
 #include <string.h>
-//#include <stdio.h>
 #endif
-
+ 
 #include "aesd-circular-buffer.h"
 
+#define RESET 0
 /**
  * @param buffer the buffer to search for corresponding offset.  Any necessary locking must be performed by caller.
  * @param char_offset the position to search for in the buffer list, describing the zero referenced
@@ -30,39 +30,38 @@
 struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct aesd_circular_buffer *buffer,
 			size_t char_offset, size_t *entry_offset_byte_rtn )
 {
-	/**
-	* TODO: implement per description
-	*/
-	uint8_t index;
 
-	struct aesd_buffer_entry *entry;
-	char_offset++;
-	index = buffer->out_offs;
-	for (int count = 0; count < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED; count++)
-	{
-		index = (buffer->out_offs + count) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
+    size_t buff_sum = RESET;
+    size_t size     = RESET;
+    uint8_t buff_idx;
 
-		entry = &((buffer)->entry[index]);
-		if(entry == NULL)
-		{
-			return NULL;
-		}
-		else
-		{
-			if(char_offset <= entry->size)
-			{
-				// offset is present in this string
-				*entry_offset_byte_rtn = char_offset -1;
-				return entry;
-			}
-			else
-			{
-				char_offset -= entry->size;
-			}
-		}
-	}
+    buff_idx = buffer->out_offs;
+    
+    //iterate till in_idx
+    do{
+        
+        buff_sum += buffer->entry[buff_idx].size;
+        
+        size = buffer->entry[buff_idx].size;;
+       
+        //Check for first block
+        if(char_offset <= (buff_sum-1)) {
+            *entry_offset_byte_rtn = char_offset - (buff_sum - size);
+            return &buffer->entry[buff_idx];
+        }
 
-	return NULL;
+        buff_idx++;
+
+        if(buff_idx == AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED) {
+            buff_idx = 0;
+            }
+            
+    }while(buff_idx != buffer->in_offs);
+
+
+
+    
+    return NULL;
 }
 
 /**
@@ -72,36 +71,52 @@ struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct
 * Any necessary locking must be handled by the caller
 * Any memory referenced in @param add_entry must be allocated by and/or must have a lifetime managed by the caller.
 */
-void aesd_circular_buffer_add_entry(struct aesd_circular_buffer *buffer, const struct aesd_buffer_entry *add_entry)
+const char* aesd_circular_buffer_add_entry(struct aesd_circular_buffer *buffer, const struct aesd_buffer_entry *add_entry)
 {
     /**
     * TODO: implement per description 
     */
+    const char* entry_ptr = NULL;
+     
     
-	// Check if buffer is full
+     //Check if buffer is full
+     if ( (buffer->in_offs == buffer->out_offs) && buffer->full ){
+        entry_ptr = buffer->entry[buffer->in_offs].buffptr;
+ 
+        buffer->entry[buffer->in_offs] = *(add_entry);
+        
+        buffer->in_offs++;   // Increment head
+        
+         //Check rollover
+        if(buffer->in_offs == AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED) {
+        buffer->in_offs = 0;
+        }
+        
+        buffer->out_offs = buffer->in_offs; 
+       }
+      else
+    {
+        buffer->entry[buffer->in_offs] = *add_entry;
+        
+        buffer->in_offs++;
 
+        //Check rollover
+        if(buffer->in_offs == AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED)
+        
+        buffer->in_offs = 0;
 
-	// add entry to correct location
-	buffer->entry[buffer->in_offs] = *add_entry;
-
-   	// Modify read and write pointers accordingly
-	buffer->in_offs = (buffer->in_offs + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
-	if(buffer->full ==  true)
-	{
-		buffer->out_offs = (buffer->out_offs + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
-	}
-
-   	// Update full status if buffer is full
-	if(buffer->in_offs == buffer->out_offs)
-	{
-		buffer->full = true;
-	}
-	else
-	{
-		buffer->full = false;
-	}
-
+        //Check for Buffer full
+        if(buffer->in_offs == buffer->out_offs) {
+            buffer->full = true;
+            }
+        else {
+            buffer->full = false;
+            }
+        
+    }
+        return entry_ptr;
 }
+
 
 /**
 * Initializes the circular buffer described by @param buffer to an empty struct
